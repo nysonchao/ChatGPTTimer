@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>倒數計時器</title>
+    <style>
+
+@import url('https://fonts.cdnfonts.com/css/alarm-clock');
+body {
+    background: linear-gradient(to bottom, #FFFFCC, #98FB98); /* 從淡黃色到綠色的漸層 */
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* 這樣背景不會隨著內容滾動 */
+    font-family: Arial, sans-serif;
+    text-align: center;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* 用於設定間隔 */
+}
+
+#timerContainer {
+    position: relative;
+    display: inline-block;
+}
+
+#timerBackground {
+    background-color: black;
+    border: 4px solid silver; /* 銀色的外框 */
+    border-radius: 10px; /* 圓角 */
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.3); /* 陰影效果 */
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-52%, -53%); /* 使其保持在父元素的中心位置 */
+    width: calc(25vw*2.7 + 20px); /* 根據計時器文字的大小調整，增加20px */
+    height: calc(25vw * 0.8 + 15px); /* 根據計時器文字的高度比例調整，增加20px */
+    z-index: -1;
+}
+
+#timerDisplay {
+    font-size: calc(25vw);
+    font-family: 'alarm clock', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 0;
+    color: red; /* 文字顏色更改為紅色 */
+    position: relative;
+    z-index: 1;
+}
+
+
+
+        .timer-blinking {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <input type="number" id="inputMinutes" placeholder="輸入分鐘" min="1">
+        <button onclick="startCountdown()">開始</button>
+        <button onclick="pauseCountdown()">暫停</button>
+        <button onclick="quickStart(1)">1 分鐘</button>
+        <button onclick="quickStart(3)">3 分鐘</button>
+        <button onclick="quickStart(5)">5 分鐘</button>
+        <button onclick="quickStart(10)">10 分鐘</button>
+    </div>
+
+    <div id="timerContainer">
+        <div id="timerBackground"></div>
+        <p id="timerDisplay">00:00</p>
+    </div>
+    
+
+<script>
+    let countdown;
+    let timerDisplay = document.getElementById("timerDisplay");
+
+    function speak(text) {
+        const speech = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(speech);
+    }
+
+    function quickStart(minutes) {
+        document.getElementById("inputMinutes").value = minutes;
+        startCountdown();
+    }
+
+    let isPaused = false;
+let timeLeft = null;
+
+function startCountdown() {
+    if (isPaused && timeLeft !== null) {
+        isPaused = false;
+        countdownFunction();
+        return;
+    }
+
+    let minutes = parseInt(document.getElementById("inputMinutes").value);
+
+    if (isNaN(minutes) || minutes <= 0) {
+        alert("請輸入有效的分鐘數");
+        return;
+    }
+
+    timeLeft = minutes * 60;
+    isPaused = false;
+    countdownFunction();
+}
+
+function countdownFunction() {
+    clearInterval(countdown);
+
+    countdown = setInterval(function() {
+        if (isPaused) return;
+
+        timeLeft--;
+
+        if (timeLeft == 60) { // 當剩餘時間為1分鐘時
+            speak("剩下一分鐘囉，請加速完成");
+        }
+
+        if (timeLeft < 10) {
+            timerDisplay.classList.add("timer-blinking");
+        } else {
+            timerDisplay.classList.remove("timer-blinking");
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            speak("逼逼逼，時間到了");
+            timerDisplay.classList.remove("timer-blinking");
+            timerDisplay.textContent = "00:00";
+            timeLeft = null;
+            return;
+        }
+
+        let displayMinutes = Math.floor(timeLeft / 60);
+        let displaySeconds = timeLeft % 60;
+        timerDisplay.textContent = `${displayMinutes.toString().padStart(2, '0')}:${displaySeconds.toString().padStart(2, '0')}`;
+    }, 1000);
+}
+
+function pauseCountdown() {
+    isPaused = true;
+}
+
+</script>
+</body>
+</html>
